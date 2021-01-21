@@ -1,0 +1,173 @@
+/*
+ *
+ * Αλέξης Λαζελλάρι      p3170088
+ * Παναγιώτης Βαρουκτσής t8170011
+ *
+ */
+
+Package minipython;
+
+Helpers
+  letter = ['a' .. 'z']|['A' .. 'Z']; 
+  digit = ['0' .. '9'];
+
+  hashtag = '#';
+  squote = ''';
+  dquote = '"';
+  space = ' ';
+  dot = '.';
+
+  cr = 13; 
+  lf = 10;
+
+  all = [0..127]; 
+  eol = cr | lf | cr lf;
+  not_eol = [all - [cr + lf]]; 
+
+Tokens
+  tab = 9;
+
+  dot = dot;
+
+  plus = '+';
+  minus = '-';
+  mult = '*';
+  pow = '**';
+  div = '/';
+  mod = '%';
+  assign = '=';
+  mineq = '-=';
+  diveq = '/=';
+
+  lpar = '(';
+  rpar = ')';
+  lbr = '[';
+  rbr = ']';
+
+  eq = '==';
+  neq = '!=';
+  less = '<';
+  greater = '>';
+  lesseq = '<=';
+  greatereq = '>=';
+
+  true = 'true';
+  false = 'false';
+  and = 'and';
+  or = 'or';
+  not = 'not';
+ 
+  def = 'def';
+  comma = ',';
+  colon = ':';
+
+  if = 'if';
+  while = 'while';
+  for = 'for';
+  in = 'in';
+
+  open = 'open';
+  type = 'type';
+  max = 'max';
+  min = 'min';
+  print = 'print';
+  assert = 'assert';
+  return = 'return';
+  
+  blank = (space | lf | cr);
+  line_comment = hashtag not_eol* eol; 
+
+  id = letter (letter | digit)*;
+  number = ([digit - '0'] digit* | '0') | (digit* dot digit+);
+  string = squote (letter | space)* squote | dquote (letter | space)* dquote;
+  none = 'None';
+
+Ignored Tokens
+  blank, line_comment;
+
+Productions
+  program = commands*;
+
+  commands = {statement} statement |
+             {function} function;
+
+  function = def id lpar arguments? rpar colon statement;
+
+  arguments = argument comma_argument*;
+
+  comma_argument = comma argument;
+
+  argument = id assign_value?;
+
+  assign_value = assign value;
+
+  statement = {if} tab* if condition colon statement |
+              {while} tab* while condition colon statement |
+              {for} tab* for [first_id]:id in [second_id]:id colon statement |
+              {return} tab* return expression |
+              {print} tab* print expression comma_expression* |
+              {assignment} tab* id assign expression |
+              {subtraction_assignment} tab* id mineq expression |
+              {division_assignment} tab* id diveq expression |
+              {list_assignment} tab* id lbr [index]:expression rbr assign [value]:expression |
+              {assertion} tab* assert expression comma_expression? |
+              {function_call} tab* function_call;
+
+  condition = {or_condition} or_condition;
+
+  or_condition = {and_conditon} and_condition |
+                 {or_condition} or_condition or and_condition;
+
+  and_condition = {not_condition} not_condition |
+                  {and_condition} and_condition and not_condition;
+
+  not_condition = {comparison} comparison |
+                  {not_comparison} not comparison;
+
+  comparison = {true} true |
+               {false} false |
+               {equals} [lpar]:expression eq [rpar]:expression |
+               {not_equals} [lpar]:expression neq [rpar]:expression | 
+               {less} [lpar]:expression less [rpar]:expression|
+               {greater} [lpar]:expression greater [rpar]:expression | 
+               {greater_equals} [lpar]:expression greatereq [rpar]:expression | 
+               {less_equals} [lpar]:expression lesseq [rpar]:expression;
+
+  comma_expression = comma expression;
+
+  expression = {addition_subtraction} addition_subtraction;
+ 
+  addition_subtraction = {multiplication_division} multiplication_division |
+                         {addition} addition_subtraction plus multiplication_division |
+                         {subtraction} addition_subtraction minus multiplication_division;
+
+  multiplication_division = {power} power |
+                            {multiplication} multiplication_division mult power |
+                            {division} multiplication_division div power |
+                            {modulo} multiplication_division mod power;
+
+  power = {last_expression} last_expression |
+          {power} power pow last_expression;
+
+  last_expression = {id} id |
+                    {value} value |
+                    {list} id lbr expression rbr |
+                    {function_call} function_call |
+                    {parenthesis_expression} lpar expression rpar |
+                    {bracket_expression} lbr expression comma_expression* rbr |
+                    {open} open lpar expression comma_expression rpar |
+                    {type} type lpar id rpar |
+                    {max} max lpar value comma_value+ rpar |
+                    {min} min lpar value comma_value+ rpar;
+
+  function_call = id lpar argument_list? rpar;
+
+  argument_list = expression comma_expression*;
+
+  comma_value = comma value;
+
+  value = {function_call} id dot function_call |
+          {number} number |
+          {string} string |
+          {none} none;
+
