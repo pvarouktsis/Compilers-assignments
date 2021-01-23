@@ -93,15 +93,15 @@ Productions
              {statement} statement 
                {-> New commands.statement(statement)};
 
-  function = def id lpar arguments? rpar colon statement 
-               {-> New function(id, [arguments.argument], statement)};
+  function = def id lpar parameters? rpar colon statement 
+               {-> New function(id, [parameters.parameter], statement)};
 
-  arguments {-> argument*} = argument comma_argument* 
-                               {-> [argument comma_argument.argument]};
+  parameters {-> parameter*} = parameter comma_parameter* 
+                               {-> [parameter comma_parameter.parameter]};
 
-  comma_argument {-> argument} = comma argument {-> argument};
+  comma_parameter {-> parameter} = comma parameter {-> parameter};
 
-  argument = id assign_value? {-> New argument(id, assign_value.value)};
+  parameter = id assign_value? {-> New parameter(id, assign_value.value)};
 
   assign_value {-> value} = assign value {-> value};
 
@@ -229,9 +229,9 @@ Abstract Syntax Tree
   commands = {function} function |
              {statement} statement;
 
-  function = id argument* statement;
+  function = id parameter* statement;
 
-  argument = id value;
+  parameter = id value;
 
   statement = {if} condition statement |
               {while} condition statement |

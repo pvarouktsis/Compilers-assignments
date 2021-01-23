@@ -18,7 +18,7 @@ public class ParserTest2
 
       Start ast = parser.parse();
 
-	ast.apply(new ASTPrinter());
+      ast.apply(new ASTPrinter());
 
 //      System.out.println(ast);
     }
