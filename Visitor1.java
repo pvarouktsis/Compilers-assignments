@@ -34,8 +34,11 @@ public class Visitor1 extends DepthFirstAdapter {
 
 		// TODO scope
 		symtable.put(id, node);
+
+		printSymtable();
 	}
 
+	// check if the id is already defined
 	public void inAIdExpression(AIdExpression node) {
 		String id = node.getId().toString().trim();
 		int line = node.getId().getLine();
@@ -45,6 +48,8 @@ public class Visitor1 extends DepthFirstAdapter {
 			errors.add(new Error(id, line,
 				"Variable \"" + id + "\" has not been defined"));
 		}
+
+		printSymtable();
 	}
 
 	// TODO
@@ -155,25 +160,6 @@ public class Visitor1 extends DepthFirstAdapter {
 		}
 	}
 
-
-	// public void inAFunctionCall(AFunctionCall node) {
-	// 	String id = node.getId().toString();
-	// 	int line = node.getId().getLine();
-
-	// 	if (!symtable.containsKey(id)) {
-	// 		errors.add(new Error(id, line,
-	// 			"Undefined " + id + " function"));
-	// 		errorCounter++;
-	// 	}
-	// }
-
-
-
-    /**
-     *
-     * ************************************************************************
-     *
-     */
     public Hashtable getSymtable() {
     	return symtable;
     }
