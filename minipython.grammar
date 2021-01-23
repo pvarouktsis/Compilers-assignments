@@ -73,6 +73,7 @@ Tokens
   print = 'print';
   assert = 'assert';
   return = 'return';
+  none = 'None';
   
   blank = (space | lf | cr);
   line_comment = hashtag not_eol* eol; 
@@ -80,7 +81,6 @@ Tokens
   id = letter (letter | digit)*;
   number = ([digit - '0'] digit* | '0') | (digit* dot digit+);
   string = squote (letter | space)* squote | dquote (letter | space)* dquote;
-  none = 'None';
 
 Ignored Tokens
   blank, line_comment;
@@ -221,7 +221,7 @@ Productions
           {string} string
             {-> New value.string(string)} |
           {none} none
-            {-> New value.none(none)};
+            {-> New value.none()};
 
 Abstract Syntax Tree
   program = commands*;
@@ -279,5 +279,5 @@ Abstract Syntax Tree
   value = {function_call} id function_call |
           {number} number |
           {string} string |
-          {none} none;
+          {none};
 
