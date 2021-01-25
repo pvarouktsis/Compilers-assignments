@@ -268,7 +268,7 @@ Abstract Syntax Tree
                {list} id expression |
                {function_call} function_call |
                {parentheses} expression |
-               {brackets} expression*  |
+               {brackets} expression* |
                {open} expression* |
                {type} id |
                {max} value* |

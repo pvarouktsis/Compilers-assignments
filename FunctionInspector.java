@@ -7,58 +7,51 @@ import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.Hashtable;
 
-public class Visitor2 extends DepthFirstAdapter {
+public class FunctionInspector extends DepthFirstAdapter {
 
-	private Hashtable symtable;
-	//private Stack stack;
+	private Hashtable vartable;
 	private List<Error> errors;
 	private int errorCounter;
 
-	public Visitor2() {
-		this.symtable = new Hashtable();
+	public FunctionInspector(Hashtable vartable) {
+		this.vartable = vartable;
 		this.errors = new ArrayList<Error>();
 		errorCounter = 0;
 	}
 
-	public Visitor2(Hashtable symtable) {
-		this.symtable = symtable;
-		this.errors = new ArrayList<Error>();
-		errorCounter = 0;
-	}
-
+	// check
 	public void inAFunctionCall(AFunctionCall node) {
 		String id = node.getId().toString().trim();
 		int line = node.getId().getLine();
 
-		if (symtable.containsKey(id)) {
+		// if function exists
+		if (vartable.containsKey(id)) {
 			LinkedList<PExpression> args = node.getExpression();
-			LinkedList<AParameter> params = ((AFunction) symtable.get(id)).getParameter();
+			LinkedList<AParameter> params = ((AFunction) vartable.get(id)).getParameter();
 
-			// check the size of parameters
+			// if params == args
 			if (params.size() == args.size()) {
-				// if params == args
 				// args are ok
 			
+			// if params > args 
 			} else if (params.size() > args.size()) {
-				// if params > args 
 				// count the default parameters
 				Iterator<AParameter> iter = params.iterator();
 				int defaultCounter = 0;
-				
 				while (iter.hasNext())
 					if (iter.next().getValue() != null)
 						defaultCounter++;
 
-				// if the (params - default_params) > args
-				// args should be more
+				// if (params - default_params) > args
 				if (params.size() - defaultCounter > args.size()) {
+					// args should be more					
 					errorCounter++;
 					errors.add(new Error(id, line,
 						"Wrong call of \"" + id + "\" function"));
 				}
 
 				// else 
-				// pass
+				// args are ok
 			
 			} else if (params.size() < args.size()) {
 				// if params < args
@@ -68,7 +61,9 @@ public class Visitor2 extends DepthFirstAdapter {
 					"Wrong call of \"" + id + "\" function"));
 			}
 
+		// if function not exists
 		} else {
+			// function has not been defined
 			errorCounter++;
 			errors.add(new Error(id, line,
 				"Function \"" + id + "\" has not been defined"));
@@ -77,12 +72,12 @@ public class Visitor2 extends DepthFirstAdapter {
 	
 	}
 
-    public Hashtable getSymtable() {
-    	return symtable;
+    public Hashtable getVartable() {
+    	return vartable;
     }
 
-    public void printSymtable() {
-    	System.out.println(symtable);
+    public void printVartable() {
+    	System.out.println(vartable);
     }
 
     public List<Error> getErrors() {

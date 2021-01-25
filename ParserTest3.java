@@ -20,20 +20,26 @@ public class ParserTest3 {
       Start ast = parser.parse();
       
       // run the visitors
-      Visitor1 v1 = new Visitor1();
-      ast.apply(v1);
-      Visitor2 v2 = new Visitor2(v1.getSymtable());
-      ast.apply(v2);
+      VariableAnalyzerInspector vai = new VariableAnalyzerInspector();
+      ast.apply(vai);
+      FunctionAnalyzer fa = new FunctionAnalyzer(vai.getVartable(), vai.getValtable());
+      ast.apply(fa);
+      FunctionInspector fi = new FunctionInspector(fa.getVartable());
+      ast.apply(fi);
 
       // print symbol table
-      System.out.println();
-      v1.printSymtable();
-      System.out.println();
+      // System.out.println();
+      // va.printVartable();
+      // va.printValtable();
+      // System.out.println();
       
       // printErrors
-      if ((v1.getErrorCounter() != 0) || (v2.getErrorCounter() != 0)) {
-        v1.printErrors();
-        v2.printErrors();
+      if ((vai.getErrorCounter() != 0) || 
+          (fa.getErrorCounter() != 0) || 
+          (fi.getErrorCounter() != 0)) {
+        vai.printErrors();
+        fa.printErrors();
+        fi.printErrors();
       }
 
     } catch (Exception e) {
