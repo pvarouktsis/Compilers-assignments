@@ -29,6 +29,18 @@ public class Utils {
 	}
 
 	// helper
+	public boolean functionExists(AFunction node) {
+		String id = node.getId().toString().trim();
+		List<AFunction> functions = (ArrayList) funcTable.get(id);
+
+		for (AFunction function : functions)
+			if (!checkParameters(node, function))
+				return true;
+
+		return false;
+	}
+
+	// helper
 	public boolean checkParameters(AFunction first, AFunction second) {
 		// TODO
 		// def add(x, y, a)

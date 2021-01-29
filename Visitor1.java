@@ -41,9 +41,9 @@ public class Visitor1 extends DepthFirstAdapter {
 	// define functions
 	public void inAFunction(AFunction node) {
 		String id = node.getId().toString().trim();
+		int line = node.getId().getLine();
 
 		if (!utils.checkParametersOrder(node)) {
-			int line = node.getId().getLine();
 			errorCounter++;
 			errors.add(new Error(id, line,
 				"Default parameters of function \"" + id + "\" must be declared last"));
@@ -58,33 +58,20 @@ public class Visitor1 extends DepthFirstAdapter {
 			return;
 		}
 
-		if (funcTable.containsKey(id) && !functionExists(node)) {
+		if (!utils.functionExists(node)) {
 			((ArrayList) funcTable.get(id)).add(node);
 
 			return;
-		}
+		}		
+		
+		errorCounter++;
+		errors.add(new Error(id, line,
+			"Function \"" + id + "\" has already been defined"));
+
 
 		utils.printDebugInfo();
-	}
 
-
-	// helper
-	public boolean functionExists(AFunction node) {
-		String id = node.getId().toString().trim();
-		List<AFunction> functions = (ArrayList) funcTable.get(id);
-
-		for (AFunction function : functions) {
-			if (!utils.checkParameters(node, function)) {
-				int line = node.getId().getLine();
-				errorCounter++;
-				errors.add(new Error(id, line,
-					"Function \"" + id + "\" has already been defined"));
-
-				return true;
-			}
-		}
-
-		return false;
+		return;
 	}
 
 	// define parameters
@@ -116,7 +103,11 @@ public class Visitor1 extends DepthFirstAdapter {
 			errorCounter++;
 			errors.add(new Error(id, line,
 				"Variable \"" + id + "\" has not been defined"));
+
+			return;
 		}
+
+		return;
 	}
 
 	// check
@@ -130,6 +121,8 @@ public class Visitor1 extends DepthFirstAdapter {
 			errorCounter++;
 			errors.add(new Error(fid, fline,
 				"Variable \"" + fid + "\" has not been defined"));
+
+			return;
 		}
 
 		// check second id
@@ -138,7 +131,11 @@ public class Visitor1 extends DepthFirstAdapter {
 			errorCounter++;
 			errors.add(new Error(sid, sline,
 				"Variable \"" + sid + "\" has not been defined"));
+
+			return;
 		}
+
+		return;
 	}
 
 	// define & check
@@ -214,6 +211,8 @@ public class Visitor1 extends DepthFirstAdapter {
 			errors.add(new Error(id, line,
 				"Unsupported operation"));
 		}
+
+		return;
 	}
 
     /*
