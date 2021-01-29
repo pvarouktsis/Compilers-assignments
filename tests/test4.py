@@ -4,5 +4,11 @@
 # THIS TEST SHOULD FAIL
 # *********************
 
-x = open(file, p)
-print x + 2
+# x = "hello world"
+# print x + 2
+
+k = "hello world"
+print add(2 + 1, k)
+
+def add(x, y=1):
+    return x + y

@@ -4,7 +4,8 @@
 # THIS TEST SHOULD NOT FAIL
 # *************************
 
-def add(x,y=2):
+def add(x, y=2):
     return x + y
+
 print add(1)
 

@@ -12,7 +12,10 @@ public class VariableAnalyzerInspector extends DepthFirstAdapter {
 
 	private Hashtable vartable;
 	private Hashtable valtable;
-	private Hashtable exptable;
+	private Hashtable funcTable;
+	//private Hashtable paramTable;
+	private Hashtable retTable;
+	private Utils utils;
 	private List<Error> errors;
 	private int errorCounter;
 	private int debugCounter;
@@ -20,17 +23,64 @@ public class VariableAnalyzerInspector extends DepthFirstAdapter {
 	public VariableAnalyzerInspector() {
 		this.vartable = new Hashtable();
 		this.valtable = new Hashtable();
+		this.funcTable = new Hashtable();
+		//this.paramTable = new Hashtable();
+		this.retTable = new Hashtable();
+		this.utils = new Utils("VariableAnalyzerInspector", vartable, valtable, funcTable, retTable);
 		this.errors = new ArrayList<Error>();
 		this.errorCounter = 0;
 		this.debugCounter = 0;
 	}
 
-	public VariableAnalyzerInspector(Hashtable vartable, Hashtable valtable) {
+	public VariableAnalyzerInspector(Hashtable vartable, Hashtable valtable, Hashtable funcTable, Hashtable paramTable, Hashtable retTable) {
 		this.vartable = vartable;
 		this.valtable = valtable;
+		this.funcTable = funcTable;
+		//this.paramTable = paramTable;
+		this.retTable = retTable;
+		this.utils = new Utils("VariableAnalyzerInspector", vartable, valtable, funcTable, retTable);
 		this.errors = new ArrayList<Error>();
 		this.errorCounter = 0;
 		this.debugCounter = 0;
+	}
+
+	// define functions
+	public void inAFunction(AFunction node) {
+		String id = node.getId().toString().trim();
+
+    // if function id already exists
+		if (funcTable.containsKey(id)) {
+			List<AFunction> funcs = (ArrayList) funcTable.get(id);
+
+			for (AFunction func : funcs) {
+        // if any function is equal to current
+        if (areFunctionsEqual(node, func)) {
+          int line = node.getId().getLine();
+          errorCounter++;
+          errors.add(new Error(id, line,
+            "Function \"" + id + "\" has already been defined"));
+        } else {
+          funcs.add(node); 
+        }
+      }
+
+		} else {
+			funcTable.put(id, new ArrayList<Node>());
+			((ArrayList) funcTable.get(id)).add(node);
+
+    }
+
+		utils.printDebugInfo();
+	}
+
+	// define parameters
+	public void inAParameter(AParameter node) {
+		String id = node.getId().toString().trim();
+
+		vartable.put(id, node);
+		valtable.put( id, (Type) utils.getType(node.getValue()) );
+
+		utils.printDebugInfo();
 	}
 
 	// define
@@ -38,18 +88,9 @@ public class VariableAnalyzerInspector extends DepthFirstAdapter {
 		String id = node.getId().toString().trim();
 
 		vartable.put(id, node);
-		valtable.put( id, getType(node.getExpression()) );
+		valtable.put( id, (Type) utils.getType(node.getExpression()) );
 
-		printDebugInfo();
-	}
-
-	// define
-	public void inAParameter(AParameter node) {
-		String id = node.getId().toString().trim();
-
-		vartable.put(id, node);
-
-		printDebugInfo();
+		utils.printDebugInfo();
 	}
 
 	// check
@@ -93,7 +134,7 @@ public class VariableAnalyzerInspector extends DepthFirstAdapter {
 
 		checkType(node, leftExp, rightExp);
 
-		printDebugInfo();
+		utils.printDebugInfo();
 	}
 
 	// define & check
@@ -103,7 +144,7 @@ public class VariableAnalyzerInspector extends DepthFirstAdapter {
 
 		checkType(node, leftExp, rightExp);
 
-		printDebugInfo();
+		utils.printDebugInfo();
 	}
 
 	// define & check
@@ -113,7 +154,7 @@ public class VariableAnalyzerInspector extends DepthFirstAdapter {
 
 		checkType(node, leftExp, rightExp);
 
-		printDebugInfo();
+		utils.printDebugInfo();
 	}
 
 	// define & check
@@ -123,7 +164,7 @@ public class VariableAnalyzerInspector extends DepthFirstAdapter {
 
 		checkType(node, leftExp, rightExp);
 
-		printDebugInfo();
+		utils.printDebugInfo();
 	}
 
 	// define & check
@@ -133,7 +174,7 @@ public class VariableAnalyzerInspector extends DepthFirstAdapter {
 
 		checkType(node, leftExp, rightExp);
 
-		printDebugInfo();
+		utils.printDebugInfo();
 	}
 
 	// define & check
@@ -143,71 +184,24 @@ public class VariableAnalyzerInspector extends DepthFirstAdapter {
 
 		checkType(node, leftExp, rightExp);
 
-		printDebugInfo();
+		utils.printDebugInfo();
 	}
+
 
 	// define & check (helper)
 	public void checkType(PExpression node, PExpression leftExp, PExpression rightExp) {
-		String id = node.toString();
+		String id = node.toString().trim();
 
-		if (getType(leftExp) == getType(rightExp)) {
-			valtable.put(id, (Type) getType(leftExp)); // either left or right could work
+		if (utils.getType(leftExp) == utils.getType(rightExp)) {
+			valtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work
 		} else {
 			int line = -1;
 			errorCounter++;
 			errors.add(new Error(id, line,
 				"Unsupported operation"));
 		}
-
 	}
 
-	// define & check (helper)
-	public Type getType(PExpression node) {
-
-		// if expression is id
-		if (node instanceof AIdExpression) {
-			String id = ((AIdExpression) node).getId().toString().trim();
-			if (valtable.containsKey(id)) {
-				return (Type) valtable.get(id);
-			}
-
-		// if expression is value
-		} else if (node instanceof AValueExpression) {
-			PValue value = ((AValueExpression) node).getValue();
-			if (value instanceof ANumberValue) {
-				return Type.NUMBER;
-			} else if (value instanceof AStringValue) {
-				return Type.STRING;
-			}
-
-		// if expression is operation
-		} else if ((node instanceof AAdditionExpression) ||
-				   (node instanceof ASubtractionExpression) ||
-				   (node instanceof AMultiplicationExpression) ||
-				   (node instanceof ADivisionExpression) ||
-				   (node instanceof AModuloExpression) ||
-				   (node instanceof APowerExpression)) {
-			String id = node.toString();
-			if (valtable.containsKey(id)) {
-				return (Type) valtable.get(id);
-			}
-
-		}
-
-		// else
-		return Type.NONE;
-	}
-
-	
-	public void printDebugInfo() {
-		System.out.println("\nCounter:" + ++debugCounter);
-		System.out.print("vartable: ");
-		printVartable();
-		System.out.print("valtable: ");
-		printValtable();
-
-	}
-	
 	/*
 
 		// // TODO
@@ -310,20 +304,16 @@ public class VariableAnalyzerInspector extends DepthFirstAdapter {
 
 	*/
 
+
+	/*
+	 * Getters and Setters
+	 */
     public Hashtable getVartable() {
     	return vartable;
     }
 
-    public void printVartable() {
-    	System.out.println(vartable);
-    }
-
 	public Hashtable getValtable() {
 	    return valtable;
-    }
-
-    public void printValtable() {
-    	System.out.println(valtable);
     }
 
     public List<Error> getErrors() {

@@ -19,27 +19,20 @@ public class ParserTest3 {
 
       Start ast = parser.parse();
       
-      // run the visitors
-      VariableAnalyzerInspector vai = new VariableAnalyzerInspector();
-      ast.apply(vai);
-      FunctionAnalyzer fa = new FunctionAnalyzer(vai.getVartable(), vai.getValtable());
-      ast.apply(fa);
-      FunctionInspector fi = new FunctionInspector(fa.getVartable());
-      ast.apply(fi);
+      // TODO
+      // hashtables here
 
-      // print symbol table
-      // System.out.println();
-      // va.printVartable();
-      // va.printValtable();
-      // System.out.println();
-      
+      // run the visitors
+      Visitor1 v1 = new Visitor1();
+      ast.apply(v1);
+      Visitor2 v2 = new Visitor2(v1.getVarTable(), v1.getValTable(), v1.getFuncTable(), v1.getRetTable());
+      ast.apply(v2);
+
       // printErrors
-      if ((vai.getErrorCounter() != 0) || 
-          (fa.getErrorCounter() != 0) || 
-          (fi.getErrorCounter() != 0)) {
-        vai.printErrors();
-        fa.printErrors();
-        fi.printErrors();
+      if ((v1.getErrorCounter() != 0) || 
+          (v2.getErrorCounter() != 0)) {
+        v1.printErrors();
+        v2.printErrors();
       }
 
     } catch (Exception e) {
