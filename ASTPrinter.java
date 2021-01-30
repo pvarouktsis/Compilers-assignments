@@ -53,9 +53,9 @@ public class ASTPrinter extends ReversedDepthFirstAdapter
 	public static final int BG_WHITE = 47;
 
 	// variables. We use a stack to push on indent tokens...
-    private String indent = "", output ="";
-    private boolean last = false;
-    private Stack indentchar = new Stack();
+	private String indent = "", output ="";
+	private boolean last = false;
+	private Stack indentchar = new Stack();
 	private boolean color = false;
 
 	/*
@@ -65,8 +65,8 @@ public class ASTPrinter extends ReversedDepthFirstAdapter
 	public void outStart(Start node)
 	{
 		System.out.println( treeColor() + "\n  >" + output.substring
-							(3, output.length()) + "\n" + resetColor());
-    }
+			(3, output.length()) + "\n" + resetColor());
+	}
 	
 
 	/*
@@ -75,59 +75,59 @@ public class ASTPrinter extends ReversedDepthFirstAdapter
 	 * child of this node.
 	 */
 	public void defaultIn(Node node)
-    {
-	if (last) indentchar.push ("`");
-	else indentchar.push("|");
+	{
+		if (last) indentchar.push ("`");
+		else indentchar.push("|");
 
-	indent = indent + "   ";
-	last = true;
-    }
+		indent = indent + "   ";
+		last = true;
+	}
 
 	/*
 	 * As we leave a non-terminal node, we pull off the indent
 	 * character and prepend this nodes line to the output text.
 	 */
-    public void defaultOut(Node node)
-    {
+	public void defaultOut(Node node)
+	{
 		// replace the current indent with the one from the stack
 		indent = indent.substring(0, indent.length() - 3);
 		indent = indent.substring(0, indent.length() - 1) +
-			(String) indentchar.pop();
+		(String) indentchar.pop();
 
 		// prepend this line to the output.
 		output = indent + "- " + setColor(BOLD, FG_CYAN, BG_BLACK) +
-			node.getClass().getName().substring
-			(node.getClass().getName().lastIndexOf('.') + 1) + treeColor() +
-			"\n" + output;
+		node.getClass().getName().substring
+		(node.getClass().getName().lastIndexOf('.') + 1) + treeColor() +
+		"\n" + output;
 
 		// replace any ` with a |
 		indent = indent.substring(0, indent.length() - 1) + '|';
-    }
+	}
 
 	/*
 	 * When we visit a terminals we just print it out. We always set
 	 * last to false after this because the next node we visit will
 	 * never be the last sibling.
 	 */
-    public void defaultCase(Node node)
-    {
+	public void defaultCase(Node node)
+	{
 		// last sibling has a ` instead of a |
 		if (last)
 			indent = indent.substring(0, indent.length() - 1) + '`';
 
 		// prepend this line to the output
 		output =  indent + "- " + setColor(BOLD, FG_GREEN, BG_BLACK) +
-			((Token) node).getText() + treeColor() + "\n" + output;
+		((Token) node).getText() + treeColor() + "\n" + output;
 
 		// replace any ` with a |
 		indent = indent.substring(0, indent.length() - 1) + '|';
 		last = false;
-    }
+	}
 	
-    public void caseEOF(EOF node)
-    {
+	public void caseEOF(EOF node)
+	{
 		last = false;
-    }
+	}
 	
 	
 	/*
@@ -140,8 +140,7 @@ public class ASTPrinter extends ReversedDepthFirstAdapter
 	public String setColor(int style, int fgColor, int bgColor)
 	{
 		if (color)
-			return ESC + "[" + style + ";" + fgColor + ";" + bgColor +
-				"m";
+			return ESC + "[" + style + ";" + fgColor + ";" + bgColor + "m";
 		else return "";
 	}
 
@@ -162,12 +161,5 @@ public class ASTPrinter extends ReversedDepthFirstAdapter
 	{
 		color = b;
 	}
+
 }
-
-
-
-
-
-
-
-

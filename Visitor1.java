@@ -9,229 +9,123 @@ import java.util.Iterator;
 import java.util.Hashtable;
 
 public class Visitor1 extends DepthFirstAdapter {
-
-	private Hashtable varTable;
-	private Hashtable valTable;
-	private Hashtable funcTable;
-	private Hashtable retTable;
-	private Utils utils;
+	private Hashtable symtable;
+	private Hashtable functable;
 	private List<Error> errors;
 	private int errorCounter;
+	private Utils utils;
 
 	public Visitor1() {
-		this.varTable = new Hashtable();
-		this.valTable = new Hashtable();
-		this.funcTable = new Hashtable();
-		this.retTable = new Hashtable();
+		this.symtable = new Hashtable();
+		this.functable = new Hashtable();
 		this.errors = new ArrayList<Error>();
 		this.errorCounter = 0;
-		this.utils = new Utils("Visitor1", varTable, valTable, funcTable, retTable, errors, errorCounter);
+		this.utils = new Utils("Visitor1", symtable, functable, errors, errorCounter);
 	}
 
-	public Visitor1(Hashtable varTable, Hashtable valTable, Hashtable funcTable, Hashtable paramTable, Hashtable retTable) {
-		this.varTable = varTable;
-		this.valTable = valTable;
-		this.funcTable = funcTable;
-		this.retTable = retTable;
+	public Visitor1(Hashtable symtable, Hashtable functable) {
+		this.symtable = symtable;
+		this.functable = new Hashtable();
 		this.errors = new ArrayList<Error>();
 		this.errorCounter = 0;
-		this.utils = new Utils("Visitor1", varTable, valTable, funcTable, retTable, errors, errorCounter);
+		this.utils = new Utils("Visitor1", symtable, functable, errors, errorCounter);
 	}
+
+	// in function
+	// parse ONLY parameters,
+	// not statement
+    public void caseAFunction(AFunction node) {
+        inAFunction(node);
+        
+        if(node.getId() != null) {
+            node.getId().apply(this);
+        }
+
+        Object temp[] = node.getParameter().toArray();
+        for(int i = 0; i < temp.length; i++) {
+            ((PParameter) temp[i]).apply(this);
+        }
+        
+        outAFunction(node);
+    }
 
 	// define functions
 	public void inAFunction(AFunction node) {
 		String id = node.getId().toString().trim();
 		int line = node.getId().getLine();
 
-		if (!utils.checkParametersOrder(node)) {
-			errorCounter++;
-			errors.add(new Error(id, line,
-				"Default parameters of function \"" + id + "\" must be declared last"));
-
-			return;
+		if (!symtable.containsKey(id)) {
+			functable.put(id, node);
+			utils.printDebugInfo();
 		}
 
-		if (!funcTable.containsKey(id)) {
-			funcTable.put(id, new ArrayList<AFunction>(5));
-			((ArrayList) funcTable.get(id)).add(node);
+		// if (!utils.checkParametersOrder(node)) {
+		// 	addError(id, line,
+		// 		"Default parameters of function \"" + id + "\" must be declared last");
 
-			return;
-		}
+		// 	return;
+		// }
 
-		if (!utils.functionExists(node)) {
-			((ArrayList) funcTable.get(id)).add(node);
+		// if (!symtable.containsKey(id)) {
+		// 	symtable.put(id, new ArrayList<AFunction>(5));
+		// 	((ArrayList) symtable.get(id)).add(node);
+		// 	utils.printDebugInfo();
 
-			return;
-		}		
+		// 	return;
+		// }
+
+		// if (!utils.functionExists(node)) {
+		// 	((ArrayList) symtable.get(id)).add(node);
+		// 	utils.printDebugInfo();
+
+		// 	return;
+		// }		
 		
-		errorCounter++;
-		errors.add(new Error(id, line,
-			"Function \"" + id + "\" has already been defined"));
-
-
-		utils.printDebugInfo();
-
-		return;
+		// addError(id, line,
+		// 	"Function \"" + id + "\" has already been defined");
 	}
 
 	// define parameters
 	public void inAParameter(AParameter node) {
 		String id = node.getId().toString().trim();
 
-		varTable.put(id, node);
-		valTable.put( id, (Type) utils.getType(node.getValue()) );
-
+		symtable.put(id, (Type) utils.getType(node.getValue()));
 		utils.printDebugInfo();
 	}
 
-	// define ids 
+	// define ids
 	public void inARegularAssignmentStatement(ARegularAssignmentStatement node) {
 		String id = node.getId().toString().trim();
 
-		varTable.put(id, node);
-		valTable.put(id, (Type) utils.getType(node.getExpression()));
-
+		symtable.put(id, (Type) utils.getType(node.getExpression()));
 		utils.printDebugInfo();
 	}
 
-	// check
+	// check ids
 	public void outAIdExpression(AIdExpression node) {
 		String id = node.getId().toString().trim();
 
-		if (!varTable.containsKey(id)) {
+		if (!symtable.containsKey(id)) {
 			int line = node.getId().getLine();
-			errorCounter++;
-			errors.add(new Error(id, line,
-				"Variable \"" + id + "\" has not been defined"));
-
-			return;
+			addError(id, line,
+				"Variable \"" + id + "\" has not been defined");
 		}
-
-		return;
-	}
-
-	// check
-	public void outAForStatement(AForStatement node) {
-		String fid = node.getFirstId().toString().trim();
-		String sid = node.getSecondId().toString().trim();
-
-		// check first id
-		if (!varTable.containsKey(fid)) {
-			int fline = node.getFirstId().getLine();
-			errorCounter++;
-			errors.add(new Error(fid, fline,
-				"Variable \"" + fid + "\" has not been defined"));
-
-			return;
-		}
-
-		// check second id
-		if (!varTable.containsKey(sid)) {
-			int sline = node.getSecondId().getLine();
-			errorCounter++;
-			errors.add(new Error(sid, sline,
-				"Variable \"" + sid + "\" has not been defined"));
-
-			return;
-		}
-
-		return;
-	}
-
-	// define & check
-	public void outAAdditionExpression(AAdditionExpression node) {
-		PExpression leftExp = node.getLeftExpression();
-		PExpression rightExp = node.getRightExpression();	
-
-		checkType(node, leftExp, rightExp);
-
-		utils.printDebugInfo();
-	}
-
-	// define & check
-	public void outASubtractionExpression(ASubtractionExpression node) {
-		PExpression leftExp = node.getLeftExpression();
-		PExpression rightExp = node.getRightExpression();	
-
-		checkType(node, leftExp, rightExp);
-
-		utils.printDebugInfo();
-	}
-
-	// define & check
-	public void outAMultiplicationExpression(AMultiplicationExpression node) {
-		PExpression leftExp = node.getLeftExpression();
-		PExpression rightExp = node.getRightExpression();	
-
-		checkType(node, leftExp, rightExp);
-
-		utils.printDebugInfo();
-	}
-
-	// define & check
-	public void outADivisionExpression(ADivisionExpression node) {
-		PExpression leftExp = node.getLeftExpression();
-		PExpression rightExp = node.getRightExpression();	
-
-		checkType(node, leftExp, rightExp);
-
-		utils.printDebugInfo();
-	}
-
-	// define & check
-	public void outAModuloExpression(AModuloExpression node) {
-		PExpression leftExp = node.getLeftExpression();
-		PExpression rightExp = node.getRightExpression();	
-
-		checkType(node, leftExp, rightExp);
-
-		utils.printDebugInfo();
-	}
-
-	// define & check
-	public void outAPowerExpression(APowerExpression node) {
-		PExpression leftExp = node.getLeftExpression();
-		PExpression rightExp = node.getRightExpression();	
-
-		checkType(node, leftExp, rightExp);
-
-		utils.printDebugInfo();
-	}
-
-
-	// helper
-	public void checkType(PExpression node, PExpression leftExp, PExpression rightExp) {
-		String id = node.toString().trim();
-
-		if (utils.getType(leftExp) == utils.getType(rightExp)) {
-			valTable.put(id, (Type) utils.getType(leftExp)); // either left or right could work
-		} else {
-			int line = -1;
-			errorCounter++;
-			errors.add(new Error(id, line,
-				"Unsupported operation"));
-		}
-
-		return;
 	}
 
     /*
-     * Getters and Setters
+     * Getters - Setters - Helpers
      */
-    public Hashtable getVarTable() {
-    	return varTable;
+    public Hashtable getSymtable() {
+    	return symtable;
     }
 
-    public Hashtable getValTable() {
-    	return valTable;
+    public Hashtable getFunctable() {
+    	return functable;
     }
 
-    public Hashtable getFuncTable() {
-    	return funcTable;
-    }
-
-    public Hashtable getRetTable() {
-    	return retTable;
+    public void addError(String id, int line, String msg) {
+    	errorCounter++;
+    	errors.add(new Error(id, line, msg));
     }
 
     public List<Error> getErrors() {

@@ -1,4 +1,4 @@
-# Test 3 of Phase 4
+# Test 7 of Phase 4
 
 # *********************
 # THIS TEST SHOULD FAIL

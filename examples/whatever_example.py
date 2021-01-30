@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-#A miniPython example
+# miniPython example
 
 
 def minipythonfunct(a, b=2, d):

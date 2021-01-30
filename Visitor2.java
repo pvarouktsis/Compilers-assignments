@@ -8,116 +8,253 @@ import java.util.Iterator;
 import java.util.Hashtable;
 
 public class Visitor2 extends DepthFirstAdapter {
-
-	private Hashtable vartable;
-	private Hashtable valtable;
-	private Hashtable funcTable;
-	private Hashtable retTable;
-	private Utils utils;
+	private Hashtable symtable;
+	private Hashtable functable;
 	private List<Error> errors;
 	private int errorCounter;
-	private int debugCounter;
+	private Utils utils;
 
-	public Visitor2(Hashtable vartable, Hashtable valtable, Hashtable funcTable, Hashtable retTable) {
-		this.vartable = vartable;
-		this.valtable = valtable;
-		this.funcTable = funcTable;
-		this.retTable = retTable;
-		this.utils = new Utils("Visitor2", vartable, valtable, funcTable, retTable, errors, errorCounter);
+	public Visitor2(Hashtable symtable, Hashtable functable) {
+		this.symtable = symtable;
+		this.functable = functable;
 		this.errors = new ArrayList<Error>();
-		errorCounter = 0;
+		this.errorCounter = 0;
+		this.utils = new Utils("Visitor2", symtable, functable, errors, errorCounter);
 	}
 
-	// check
-	public void outAFunctionCall(AFunctionCall node) {
+	// in a regular parse avoid to 
+	// read the statement of function
+	public void caseAFunction(AFunction node) {
+        caseAFunction(node, false);
+    }
+
+    // in a function call parse
+    // read the statements of function
+    public void caseAFunction(AFunction node, boolean flag) {
+        inAFunction(node);
+
+        if (node.getId() != null) {
+            node.getId().apply(this);
+        }
+        
+        Object temp[] = node.getParameter().toArray();
+        for (int i = 0; i < temp.length; i++) {
+            ((PParameter) temp[i]).apply(this);
+        }
+
+        if (flag) {
+        	if (node.getStatement() != null) {
+            	node.getStatement().apply(this);
+        	}
+        }
+
+        outAFunction(node);
+    }
+
+    // define and check function call
+    public void caseAFunctionCall(AFunctionCall node) {
+        inAFunctionCall(node);
+
+        // call the function and run it
+        // to find the return type
+        String id = node.getId().toString().trim();
+    	caseAFunction((AFunction) functable.get(id), true);
+    	utils.printDebugInfo();
+        
+        outAFunctionCall(node);
+    }
+
+    // define and check function call
+	public void inAFunctionCall(AFunctionCall node) {
 		String id = node.getId().toString().trim();
 		int line = node.getId().getLine();
 
 		// if function not exists
-		if (!funcTable.containsKey(id)) {
-			errorCounter++;
-			errors.add(new Error(id, line,
-				"Function \"" + id + "\" has not been defined"));
+		if (!functable.containsKey(id)) {
+			addError(id, line,
+				"Function \"" + id + "\" has not been defined");
 			return;
 		}
-    
-    // if function exists
-		List<AFunction> funcs = (ArrayList) funcTable.get(id);
 
-    LinkedList<PExpression> args = node.getExpression();
-    Iterator iterArgs = args.iterator();
+		AFunction function = (AFunction) functable.get(id);
+		
+		LinkedList<PExpression> args = node.getExpression();
+		Iterator iterArgs = args.iterator();
 
-		// check if any matches
-		for (AFunction func : funcs) {
-      
-      LinkedList<AParameter> params = func.getParameter();
-      Iterator iterParams = params.iterator();
+		LinkedList<AParameter> params = function.getParameter();
+		Iterator iterParams = params.iterator();
 
-      // if arguments < required parameters
-      // then add error and return
-      if (args.size() < utils.getSizeOfRequiredParameters(func)) {
-        errorCounter++;
-        errors.add(new Error(id, line,
-          "Wrong call of \"" + id + "\" function"));
-        return;
-      }
-      
-      // add types to valtable
-      while (iterArgs.hasNext()) {
-        // if arguments > parameters
-        // then add error and return
-        if (!iterParams.hasNext()) {
-          errorCounter++;
-          errors.add(new Error(id, line,
-            "Wrong call of \"" + id + "\" function"));
-          return;
-        }
+		// if arguments < required parameters or arguments > parameters
+		if (args.size() < utils.getSizeOfRequiredParameters(function) || 
+			args.size() > utils.getSizeOfParameters(function)) {
+			addError(id, line,
+				"Wrong call of \"" + id + "\" function");
+			return;
+		}
 
-        PExpression arg = (PExpression) iterArgs.next();
+		// add types to symtable
+		while (iterArgs.hasNext()) {
+			PExpression arg = (PExpression) iterArgs.next();
+			AParameter param = (AParameter) iterParams.next();
 
-        AParameter param = (AParameter) iterParams.next();
-        String paramId = param.getId().toString().trim();
+			String paramId = param.getId().toString().trim();
 
-        // already defined parameters in valtable
-        // will be replace with new types
-        valtable.put(paramId, (Type) utils.getType(arg));
-      }
+			symtable.put(paramId, (Type) utils.getType(arg));
+			utils.printDebugInfo();
+		}
+	}
+
+	// define function call and return type
+    public void outAFunctionCall(AFunctionCall node) {
+    	String id = node.getId().toString().trim();
+		AFunction function = (AFunction) functable.get(id);
+    	
+    	symtable.put(id, (Type) utils.getType(function));
+    	utils.printDebugInfo();
     }
 
+    // define & check
+	public void outAAdditionExpression(AAdditionExpression node) {
+		String id = node.toString().trim();
+		PExpression leftExp = node.getLeftExpression();
+		PExpression rightExp = node.getRightExpression();
+
+		if (utils.getType(leftExp) != utils.getType(rightExp)) {
+			addError(id, -1, "Unsupported operation addition");
+			return;
+		}
+
+		symtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work			
 		utils.printDebugInfo();
 	}
 
-	  /*
-	   * Getters and Setters
-	   */
-    public Hashtable getValtable() {
-    	return valtable;
-    }
+	// define & check
+	public void outASubtractionExpression(ASubtractionExpression node) {
+		String id = node.toString().trim();
+		PExpression leftExp = node.getLeftExpression();
+		PExpression rightExp = node.getRightExpression();	
 
-    public Hashtable getVartable() {
-    	return vartable;
-    }
+		if (utils.getType(leftExp) != utils.getType(rightExp)) {
+			addError(id, -1, "Unsupported operation subtraction");
+			return;
+		}
 
-    public Hashtable getFuncTable() {
-    	return funcTable;
-    }
+		if (utils.getType(leftExp) == Type.STRING) {
+			addError(id, -1, "Unsupported operation subtraction");
+			return;
+		}
 
-    public Hashtable getRetTable() {
-    	return retTable;
-    }
+		symtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work			
+		utils.printDebugInfo();
+	}
 
+	// define & check
+	public void outAMultiplicationExpression(AMultiplicationExpression node) {
+		String id = node.toString().trim();
+		PExpression leftExp = node.getLeftExpression();
+		PExpression rightExp = node.getRightExpression();	
 
-    public List<Error> getErrors() {
-    	return errors;
-    }
+		if (utils.getType(leftExp) != utils.getType(rightExp)) {
+			addError(id, -1, "Unsupported operation multiplication");
+			return;
+		}
 
-    public void printErrors() {
-    	for (Error e : errors)
-    		System.out.println(e.toString());
-    }
+		if (utils.getType(leftExp) == Type.STRING) {
+			addError(id, -1, "Unsupported operation multiplication");
+			return;
+		}
 
-    public int getErrorCounter() {
-    	return errorCounter;
-    }
+		symtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work			
+		utils.printDebugInfo();
+	}
+
+	// define & check
+	public void outADivisionExpression(ADivisionExpression node) {
+		String id = node.toString().trim();
+		PExpression leftExp = node.getLeftExpression();
+		PExpression rightExp = node.getRightExpression();	
+		
+		if (utils.getType(leftExp) != utils.getType(rightExp)) {
+			addError(id, -1, "Unsupported operation division");
+			return;
+		}
+
+		if (utils.getType(leftExp) == Type.STRING) {
+			addError(id, -1, "Unsupported operation division");
+			return;
+		}
+
+		symtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work			
+		utils.printDebugInfo();
+	}
+
+	// define & check
+	public void outAModuloExpression(AModuloExpression node) {
+		String id = node.toString().trim();
+		PExpression leftExp = node.getLeftExpression();
+		PExpression rightExp = node.getRightExpression();	
+
+		if (utils.getType(leftExp) != utils.getType(rightExp)) {
+			addError(id, -1, "Unsupported operation modulo");
+			return;
+		}
+
+		if (utils.getType(leftExp) == Type.STRING) {
+			addError(id, -1, "Unsupported operation modulo");
+			return;
+		}
+
+		symtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work			
+		utils.printDebugInfo();
+	}
+
+	// define & check
+	public void outAPowerExpression(APowerExpression node) {
+		String id = node.toString().trim();
+		PExpression leftExp = node.getLeftExpression();
+		PExpression rightExp = node.getRightExpression();	
+
+		if (utils.getType(leftExp) != utils.getType(rightExp)) {
+			addError(id, -1, "Unsupported operation power");
+			return;
+		}
+
+		if (utils.getType(leftExp) == Type.STRING) {
+			addError(id, -1, "Unsupported operation power");
+			return;
+		}
+
+		symtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work			
+		utils.printDebugInfo();
+	}
+
+	/*
+	 * Getters - Setters - Helpers
+	 */
+	public Hashtable getSymtable() {
+		return symtable;
+	}
+
+	public Hashtable getFunctable() {
+		return functable;
+	}
+
+	public void addError(String id, int line, String msg) {
+		errorCounter++;
+		errors.add(new Error(id, line, msg));
+	}
+
+	public List<Error> getErrors() {
+		return errors;
+	}
+
+	public void printErrors() {
+		for (Error e : errors)
+			System.out.println(e.toString());
+	}
+
+	public int getErrorCounter() {
+		return errorCounter;
+	}
 
 }

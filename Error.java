@@ -35,6 +35,11 @@ public class Error {
 
 	@Override
 	public String toString() {
+		if (line == -1) {
+			return "Error: " + message;
+		}
+
 		return "Error at line " + line + ": " + message;
 	}
+
 }
