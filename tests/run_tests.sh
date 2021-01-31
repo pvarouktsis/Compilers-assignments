@@ -5,7 +5,7 @@ COMPILER_PATH="code/"
 COMPILER_FILENAME="Compiler"
 
 # compile all java files in current directory
-javac code/*.java
+# javac code/*.java
 
 for i in {1..7}
 do
