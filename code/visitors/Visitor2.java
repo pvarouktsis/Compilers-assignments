@@ -1,3 +1,5 @@
+package code;
+
 import minipython.analysis.DepthFirstAdapter;
 import minipython.node.*;
 
@@ -22,26 +24,27 @@ public class Visitor2 extends DepthFirstAdapter {
 		this.utils = new Utils("Visitor2", symtable, functable, errors, errorCounter);
 	}
 
-	// in a regular parse avoid to 
-	// read the statement of function
+	// in a function_definition parse, do not read the statements
 	public void caseAFunction(AFunction node) {
         caseAFunction(node, false);
     }
 
-    // in a function call parse
-    // read the statements of function
+    // in a function_call parse, read the statements
     public void caseAFunction(AFunction node, boolean flag) {
         inAFunction(node);
 
+        // we could remove it, but we will keep it
         if (node.getId() != null) {
             node.getId().apply(this);
         }
-        
+
+        // we could remove it, but we will keep it
         Object temp[] = node.getParameter().toArray();
         for (int i = 0; i < temp.length; i++) {
             ((PParameter) temp[i]).apply(this);
         }
 
+        // if function_call, run statement
         if (flag) {
         	if (node.getStatement() != null) {
             	node.getStatement().apply(this);
@@ -51,14 +54,25 @@ public class Visitor2 extends DepthFirstAdapter {
         outAFunction(node);
     }
 
-    // define and check function call
+    // define and check function_call
     public void caseAFunctionCall(AFunctionCall node) {
         inAFunctionCall(node);
 
-        // call the function and run it
-        // to find the return type
+        // we could remove it, but we will keep it
+        if(node.getId() != null) {
+            node.getId().apply(this);
+        }
+        
+        // we could remove it, but we will keep it
+        Object temp[] = node.getExpression().toArray();
+        for(int i = 0; i < temp.length; i++) {
+            ((PExpression) temp[i]).apply(this);
+        }
+
+        // function call and return type
         String id = node.getId().toString().trim();
-    	caseAFunction((AFunction) functable.get(id), true);
+        AFunction function = (AFunction) functable.get(id);
+    	caseAFunction(function, true);
     	utils.printDebugInfo();
         
         outAFunctionCall(node);
@@ -69,7 +83,7 @@ public class Visitor2 extends DepthFirstAdapter {
 		String id = node.getId().toString().trim();
 		int line = node.getId().getLine();
 
-		// if function not exists
+		// if function not exists, raise error
 		if (!functable.containsKey(id)) {
 			addError(id, line,
 				"Function \"" + id + "\" has not been defined");
@@ -84,7 +98,7 @@ public class Visitor2 extends DepthFirstAdapter {
 		LinkedList<AParameter> params = function.getParameter();
 		Iterator iterParams = params.iterator();
 
-		// if arguments < required parameters or arguments > parameters
+		// if arguments < required parameters or arguments > parameters, raise error
 		if (args.size() < utils.getSizeOfRequiredParameters(function) || 
 			args.size() > utils.getSizeOfParameters(function)) {
 			addError(id, line,
@@ -92,7 +106,7 @@ public class Visitor2 extends DepthFirstAdapter {
 			return;
 		}
 
-		// add types to symtable
+		// put the argument types of function_call to the parameters of function_definition
 		while (iterArgs.hasNext()) {
 			PExpression arg = (PExpression) iterArgs.next();
 			AParameter param = (AParameter) iterParams.next();
@@ -104,7 +118,7 @@ public class Visitor2 extends DepthFirstAdapter {
 		}
 	}
 
-	// define function call and return type
+	// define returns of function_calls
     public void outAFunctionCall(AFunctionCall node) {
     	String id = node.getId().toString().trim();
 		AFunction function = (AFunction) functable.get(id);
@@ -113,12 +127,13 @@ public class Visitor2 extends DepthFirstAdapter {
     	utils.printDebugInfo();
     }
 
-    // define & check
+    // define and check
 	public void outAAdditionExpression(AAdditionExpression node) {
 		String id = node.toString().trim();
 		PExpression leftExp = node.getLeftExpression();
 		PExpression rightExp = node.getRightExpression();
 
+		// if different types, raise error
 		if (utils.getType(leftExp) != utils.getType(rightExp)) {
 			addError(id, -1, "Unsupported operation addition");
 			return;
@@ -128,17 +143,19 @@ public class Visitor2 extends DepthFirstAdapter {
 		utils.printDebugInfo();
 	}
 
-	// define & check
+	// define and check
 	public void outASubtractionExpression(ASubtractionExpression node) {
 		String id = node.toString().trim();
 		PExpression leftExp = node.getLeftExpression();
 		PExpression rightExp = node.getRightExpression();	
 
+		// if different types, raise error
 		if (utils.getType(leftExp) != utils.getType(rightExp)) {
 			addError(id, -1, "Unsupported operation subtraction");
 			return;
 		}
 
+		// if string type, raise error
 		if (utils.getType(leftExp) == Type.STRING) {
 			addError(id, -1, "Unsupported operation subtraction");
 			return;
@@ -148,17 +165,19 @@ public class Visitor2 extends DepthFirstAdapter {
 		utils.printDebugInfo();
 	}
 
-	// define & check
+	// define and check
 	public void outAMultiplicationExpression(AMultiplicationExpression node) {
 		String id = node.toString().trim();
 		PExpression leftExp = node.getLeftExpression();
 		PExpression rightExp = node.getRightExpression();	
 
+		// if different types, raise error
 		if (utils.getType(leftExp) != utils.getType(rightExp)) {
 			addError(id, -1, "Unsupported operation multiplication");
 			return;
 		}
 
+		// if string type, raise error
 		if (utils.getType(leftExp) == Type.STRING) {
 			addError(id, -1, "Unsupported operation multiplication");
 			return;
@@ -168,17 +187,19 @@ public class Visitor2 extends DepthFirstAdapter {
 		utils.printDebugInfo();
 	}
 
-	// define & check
+	// define and check
 	public void outADivisionExpression(ADivisionExpression node) {
 		String id = node.toString().trim();
 		PExpression leftExp = node.getLeftExpression();
 		PExpression rightExp = node.getRightExpression();	
 		
+		// if different types, raise error
 		if (utils.getType(leftExp) != utils.getType(rightExp)) {
 			addError(id, -1, "Unsupported operation division");
 			return;
 		}
 
+		// if string type, raise error
 		if (utils.getType(leftExp) == Type.STRING) {
 			addError(id, -1, "Unsupported operation division");
 			return;
@@ -188,17 +209,19 @@ public class Visitor2 extends DepthFirstAdapter {
 		utils.printDebugInfo();
 	}
 
-	// define & check
+	// define and check
 	public void outAModuloExpression(AModuloExpression node) {
 		String id = node.toString().trim();
 		PExpression leftExp = node.getLeftExpression();
 		PExpression rightExp = node.getRightExpression();	
 
+		// if different types, raise error
 		if (utils.getType(leftExp) != utils.getType(rightExp)) {
 			addError(id, -1, "Unsupported operation modulo");
 			return;
 		}
 
+		// if string type, raise error
 		if (utils.getType(leftExp) == Type.STRING) {
 			addError(id, -1, "Unsupported operation modulo");
 			return;
@@ -208,17 +231,19 @@ public class Visitor2 extends DepthFirstAdapter {
 		utils.printDebugInfo();
 	}
 
-	// define & check
+	// define and check
 	public void outAPowerExpression(APowerExpression node) {
 		String id = node.toString().trim();
 		PExpression leftExp = node.getLeftExpression();
 		PExpression rightExp = node.getRightExpression();	
 
+		// if different types, raise error
 		if (utils.getType(leftExp) != utils.getType(rightExp)) {
 			addError(id, -1, "Unsupported operation power");
 			return;
 		}
 
+		// if string type, raise error
 		if (utils.getType(leftExp) == Type.STRING) {
 			addError(id, -1, "Unsupported operation power");
 			return;
@@ -229,7 +254,7 @@ public class Visitor2 extends DepthFirstAdapter {
 	}
 
 	/*
-	 * Getters - Setters - Helpers
+	 * Getters/Setters - Helpers
 	 */
 	public Hashtable getSymtable() {
 		return symtable;

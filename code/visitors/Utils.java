@@ -1,8 +1,9 @@
+package code;
+
 import minipython.analysis.DepthFirstAdapter;
 import minipython.node.*;
 
 import java.util.List;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.Hashtable;
@@ -24,62 +25,47 @@ public class Utils {
 		this.debugCounter = 1;
 	}
 
-	// helper
-	public boolean functionExists(AFunction node) {
-		String id = node.getId().toString().trim();
-		List<AFunction> functions = (ArrayList) symtable.get(id);
-
-		for (AFunction function : functions)
-			if (!checkParameters(node, function))
-				return true;
-
-			return false;
-		}
-
-	// helper
-	public boolean checkParameters(AFunction first, AFunction second) {
-	// TODO
-	// if getSizeOfParameters == getSizeOfRequiredParameters
-	// def add(x, y, a)
-	// def add(x, y, a=1, b=1)
-
-		if (getSizeOfParameters(first) != getSizeOfParameters(second) &&
-			getSizeOfRequiredParameters(first) != getSizeOfParameters(second))
+	// helper, check size of parameters
+	public boolean checkParametersSize(AFunction first, AFunction second) {
+		if ((getSizeOfRequiredParameters(first) > getSizeOfParameters(second)) ||
+			(getSizeOfParameters(first) < getSizeOfRequiredParameters(second))) {
+			
 			return true;
+		}
 
 		return false;
 	}
 
-	// helper
+	// helper, check order of parameters, especially if defaults are last
 	public boolean checkParametersOrder(AFunction node) {
 		LinkedList<AParameter> params = node.getParameter();
 		Iterator iter = params.listIterator(getSizeOfRequiredParameters(node));
 
 		while (iter.hasNext()) {
 			AParameter param = (AParameter) iter.next();
-			if (param.getValue() == null)
+			if (param.getValue() == null) {
 				return false;
+			}
 		}
 
 		return true;
 	}
 
-	/*********************************/
-
-	// helper
+	// helper, get size of parameters
 	public int getSizeOfParameters(AFunction node) {
 		return node.getParameter().size();
 	}
 
-	// helper
+	// helper, get size of required_parameters
 	public int getSizeOfRequiredParameters(AFunction node) {
 		LinkedList<AParameter> params = node.getParameter();
 		Iterator iter = params.iterator();
 
 		int countNonDefaultParameters = 0;
 		while (iter.hasNext()) {
-			if ( ((AParameter) iter.next()).getValue() != null )
+			if ( ((AParameter) iter.next()).getValue() != null ) {
 				break;
+			}
 
 			countNonDefaultParameters++;
 		}
@@ -87,7 +73,7 @@ public class Utils {
 		return countNonDefaultParameters;
 	}
 
-	// helper
+	// helper, get type of node
 	public Type getType(Node node) {
 
 		// if node is function
@@ -153,21 +139,20 @@ public class Utils {
 	}
 
 	// debug
-		public void printDebugInfo() {
-			System.out.println("\n" + className +  ": " + debugCounter++);
+	public void printDebugInfo() {
+		System.out.println("\n" + className +  ": " + debugCounter++);
 
-			System.out.print("symtable: ");
-			printSymtable();
-			System.out.print("functable: ");
-			printFunctable();
-
-		}
-
-		public void printSymtable() {
-			System.out.println(symtable);
-		}
-
-		public void printFunctable() {
-			System.out.println(functable);
-		}
+		System.out.print("symtable: ");
+		printSymtable();
+		System.out.print("functable: ");
+		printFunctable();
 	}
+
+	public void printSymtable() {
+		System.out.println(symtable);
+	}
+
+	public void printFunctable() {
+		System.out.println(functable);
+	}
+}

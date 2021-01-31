@@ -1,3 +1,5 @@
+package code;
+
 public class Error {
 	private String id;
 	private int line;

@@ -11,7 +11,7 @@ do
   echo -------------------------------------------------------------------------------
   echo Test $i
   echo -------------------------------------------------------------------------------
-  java ParserTest3 $TEST_PATH$TEST_FILENAME$i".py"
+  java Compiler $TEST_PATH$TEST_FILENAME$i".py"
   echo 
   echo
 done

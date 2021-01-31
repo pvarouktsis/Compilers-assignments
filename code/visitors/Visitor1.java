@@ -1,11 +1,11 @@
+package code;
+
 import minipython.analysis.AnalysisAdapter;
 import minipython.analysis.DepthFirstAdapter;
 import minipython.node.*;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Iterator;
 import java.util.Hashtable;
 
 public class Visitor1 extends DepthFirstAdapter {
@@ -31,20 +31,22 @@ public class Visitor1 extends DepthFirstAdapter {
 		this.utils = new Utils("Visitor1", symtable, functable, errors, errorCounter);
 	}
 
-	// in function
-	// parse ONLY parameters,
-	// not statement
+	// parse ONLY parameters (not statements)
     public void caseAFunction(AFunction node) {
         inAFunction(node);
-        
+       	
+       	// we could remove it, but we will keep it
         if(node.getId() != null) {
             node.getId().apply(this);
         }
 
+        // parse parameters
         Object temp[] = node.getParameter().toArray();
         for(int i = 0; i < temp.length; i++) {
             ((PParameter) temp[i]).apply(this);
         }
+
+        // parse statements, removed
         
         outAFunction(node);
     }
@@ -54,35 +56,30 @@ public class Visitor1 extends DepthFirstAdapter {
 		String id = node.getId().toString().trim();
 		int line = node.getId().getLine();
 
-		if (!symtable.containsKey(id)) {
-			functable.put(id, node);
-			utils.printDebugInfo();
+		// if default_parameters not last, raise error
+		if (!utils.checkParametersOrder(node)) {
+			addError(id, line,
+				"Default parameters of function \"" + id + "\" must be declared last");
+			return;
 		}
 
-		// if (!utils.checkParametersOrder(node)) {
-		// 	addError(id, line,
-		// 		"Default parameters of function \"" + id + "\" must be declared last");
-
-		// 	return;
-		// }
-
-		// if (!symtable.containsKey(id)) {
-		// 	symtable.put(id, new ArrayList<AFunction>(5));
-		// 	((ArrayList) symtable.get(id)).add(node);
-		// 	utils.printDebugInfo();
-
-		// 	return;
-		// }
-
-		// if (!utils.functionExists(node)) {
-		// 	((ArrayList) symtable.get(id)).add(node);
-		// 	utils.printDebugInfo();
-
-		// 	return;
-		// }		
+		// if function not exists, put in functable
+		if (!functable.containsKey(id)) {
+			functable.put(id, node);
+			utils.printDebugInfo();
+			return;
+		}	
 		
-		// addError(id, line,
-		// 	"Function \"" + id + "\" has already been defined");
+		AFunction function = (AFunction) functable.get(id); // as function exists
+		// if different parameter sizes, raise error
+		if (!utils.checkParametersSize(node, function)) {
+			addError(id, line,
+				"Function \"" + id + "\" has already been defined");
+			return;
+		}
+
+		//TODO
+		//List of functions
 	}
 
 	// define parameters
@@ -105,6 +102,7 @@ public class Visitor1 extends DepthFirstAdapter {
 	public void outAIdExpression(AIdExpression node) {
 		String id = node.getId().toString().trim();
 
+		// if id not exists, raise error
 		if (!symtable.containsKey(id)) {
 			int line = node.getId().getLine();
 			addError(id, line,
@@ -113,7 +111,7 @@ public class Visitor1 extends DepthFirstAdapter {
 	}
 
     /*
-     * Getters - Setters - Helpers
+     * Getters/Setters - Helpers
      */
     public Hashtable getSymtable() {
     	return symtable;
@@ -142,4 +140,3 @@ public class Visitor1 extends DepthFirstAdapter {
     }
 
 }
-

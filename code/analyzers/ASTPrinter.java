@@ -1,4 +1,5 @@
 /* -*- jde -*- ASTPrinter.java.in */
+package code;
 
 import java.util.*;
 
