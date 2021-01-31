@@ -28,3 +28,7 @@ where wildcard could be the number of test.
 
 ## Built with
 [SableCC](https://sablecc.org/)
+
+## Authors
+- Alexis Lazellari
+- Panagiotis Varouktsis
