@@ -12,20 +12,17 @@ public class Utils {
 	private String className;
 	private Hashtable symtable;
 	private Hashtable functable;
-	private List<Error> errors;
-	private int errorCounter;
 	private static int debugCounter;
 
-	public Utils(String className, Hashtable symtable, Hashtable functable, List<Error> errors, int errorCounter) {
+	// constructor with symtable, functable
+	public Utils(String className, Hashtable symtable, Hashtable functable) {
 		this.className = className;
 		this.symtable = symtable;
 		this.functable = functable;
-		this.errors = errors;
-		this.errorCounter = errorCounter;
 		this.debugCounter = 1;
 	}
 
-	// helper, check size of parameters
+	// helper, check parameters_size
 	public boolean checkParametersSize(AFunction first, AFunction second) {
 		if ((getSizeOfRequiredParameters(first) > getSizeOfParameters(second)) ||
 			(getSizeOfParameters(first) < getSizeOfRequiredParameters(second))) {
@@ -36,7 +33,7 @@ public class Utils {
 		return false;
 	}
 
-	// helper, check order of parameters, especially if defaults are last
+	// helper, check if default_parameters are last
 	public boolean checkParametersOrder(AFunction node) {
 		LinkedList<AParameter> params = node.getParameter();
 		Iterator iter = params.listIterator(getSizeOfRequiredParameters(node));
@@ -51,12 +48,12 @@ public class Utils {
 		return true;
 	}
 
-	// helper, get size of parameters
+	// helper, get parameters_size
 	public int getSizeOfParameters(AFunction node) {
 		return node.getParameter().size();
 	}
 
-	// helper, get size of required_parameters
+	// helper, get required_parameters_size
 	public int getSizeOfRequiredParameters(AFunction node) {
 		LinkedList<AParameter> params = node.getParameter();
 		Iterator iter = params.iterator();
@@ -73,7 +70,7 @@ public class Utils {
 		return countNonDefaultParameters;
 	}
 
-	// helper, get type of node
+	// helper, get type
 	public Type getType(Node node) {
 
 		// if node is function

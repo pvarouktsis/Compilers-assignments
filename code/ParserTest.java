@@ -1,16 +1,12 @@
 package code;
 
 import java.io.*;
-
 import minipython.lexer.Lexer;
 import minipython.parser.Parser;
 
 import minipython.node.Start;
 
-import java.util.Hashtable;
-
-
-public class Compiler {
+public class ParserTest {
     
     public static void main(String[] args) {
         try {

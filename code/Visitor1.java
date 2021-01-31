@@ -14,23 +14,25 @@ public class Visitor1 extends DepthFirstAdapter {
 	private int errorCounter;
 	private Utils utils;
 
+	// constructor without symtable, functable
 	public Visitor1() {
 		this.symtable = new Hashtable();
 		this.functable = new Hashtable();
 		this.errors = new ArrayList<Error>();
 		this.errorCounter = 0;
-		this.utils = new Utils("Visitor1", symtable, functable, errors, errorCounter);
+		this.utils = new Utils("Visitor1", symtable, functable);
 	}
 
+	// constructor with symtable, functable
 	public Visitor1(Hashtable symtable, Hashtable functable) {
 		this.symtable = symtable;
-		this.functable = new Hashtable();
+		this.functable = functable;
 		this.errors = new ArrayList<Error>();
 		this.errorCounter = 0;
-		this.utils = new Utils("Visitor1", symtable, functable, errors, errorCounter);
+		this.utils = new Utils("Visitor1", symtable, functable);
 	}
 
-	// parse ONLY parameters (not statements)
+	// in a function, parse ONLY parameters (not statements)
     public void caseAFunction(AFunction node) {
         inAFunction(node);
        	
@@ -45,7 +47,7 @@ public class Visitor1 extends DepthFirstAdapter {
             ((PParameter) temp[i]).apply(this);
         }
 
-        // parse statements, removed
+        // parse statements (removed)
         
         outAFunction(node);
     }
@@ -65,20 +67,17 @@ public class Visitor1 extends DepthFirstAdapter {
 		// if function not exists, put in functable
 		if (!functable.containsKey(id)) {
 			functable.put(id, node);
-			utils.printDebugInfo();
+			//utils.printDebugInfo();
 			return;
 		}	
 		
 		AFunction function = (AFunction) functable.get(id); // as function exists
-		// if different parameter sizes, raise error
+		// if invalid parameters_size, raise error
 		if (!utils.checkParametersSize(node, function)) {
 			addError(id, line,
 				"Function \"" + id + "\" has already been defined");
 			return;
 		}
-
-		//TODO
-		//List of functions
 	}
 
 	// define parameters
@@ -86,7 +85,7 @@ public class Visitor1 extends DepthFirstAdapter {
 		String id = node.getId().toString().trim();
 
 		symtable.put(id, (Type) utils.getType(node.getValue()));
-		utils.printDebugInfo();
+		//utils.printDebugInfo();
 	}
 
 	// define ids
@@ -94,7 +93,7 @@ public class Visitor1 extends DepthFirstAdapter {
 		String id = node.getId().toString().trim();
 
 		symtable.put(id, (Type) utils.getType(node.getExpression()));
-		utils.printDebugInfo();
+		//utils.printDebugInfo();
 	}
 
 	// check ids

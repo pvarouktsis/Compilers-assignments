@@ -6,7 +6,7 @@ This is a repository for the purpose of Compilers Assignments. We implemented a 
 
 - lib: SableCC
 - code: Java Source Code
-- tests: Tests & Examples (older)
+- tests: Tests
 
 ## Run
 
@@ -15,7 +15,7 @@ In order to run the tests, you need to compile the source code
 javac code/*.java
 ```
 
-and execute the script (from the parent folder of repository)
+and execute the script (from the parent directory of repository)
 ```
 ./tests/run_tests.sh
 ```

@@ -16,12 +16,13 @@ public class Visitor2 extends DepthFirstAdapter {
 	private int errorCounter;
 	private Utils utils;
 
+	// constructor with symtable, functable
 	public Visitor2(Hashtable symtable, Hashtable functable) {
 		this.symtable = symtable;
 		this.functable = functable;
 		this.errors = new ArrayList<Error>();
 		this.errorCounter = 0;
-		this.utils = new Utils("Visitor2", symtable, functable, errors, errorCounter);
+		this.utils = new Utils("Visitor2", symtable, functable);
 	}
 
 	// in a function_definition parse, do not read the statements
@@ -69,12 +70,14 @@ public class Visitor2 extends DepthFirstAdapter {
             ((PExpression) temp[i]).apply(this);
         }
 
-        // function call and return type
+        // call the function to find the return type (if there is return)
         String id = node.getId().toString().trim();
-        AFunction function = (AFunction) functable.get(id);
-    	caseAFunction(function, true);
-    	utils.printDebugInfo();
-        
+        if (functable.containsKey(id)) {
+            AFunction function = (AFunction) functable.get(id);
+    		caseAFunction(function, true);
+    		//utils.printDebugInfo();
+        }
+
         outAFunctionCall(node);
     }
 
@@ -98,7 +101,7 @@ public class Visitor2 extends DepthFirstAdapter {
 		LinkedList<AParameter> params = function.getParameter();
 		Iterator iterParams = params.iterator();
 
-		// if arguments < required parameters or arguments > parameters, raise error
+		// if arguments < required_parameters or arguments > parameters, raise error
 		if (args.size() < utils.getSizeOfRequiredParameters(function) || 
 			args.size() > utils.getSizeOfParameters(function)) {
 			addError(id, line,
@@ -114,17 +117,17 @@ public class Visitor2 extends DepthFirstAdapter {
 			String paramId = param.getId().toString().trim();
 
 			symtable.put(paramId, (Type) utils.getType(arg));
-			utils.printDebugInfo();
+			//utils.printDebugInfo();
 		}
 	}
 
-	// define returns of function_calls
+	// define the type of function_calls
     public void outAFunctionCall(AFunctionCall node) {
     	String id = node.getId().toString().trim();
 		AFunction function = (AFunction) functable.get(id);
     	
     	symtable.put(id, (Type) utils.getType(function));
-    	utils.printDebugInfo();
+    	//utils.printDebugInfo();
     }
 
     // define and check
@@ -140,7 +143,7 @@ public class Visitor2 extends DepthFirstAdapter {
 		}
 
 		symtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work			
-		utils.printDebugInfo();
+		//utils.printDebugInfo();
 	}
 
 	// define and check
@@ -162,7 +165,7 @@ public class Visitor2 extends DepthFirstAdapter {
 		}
 
 		symtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work			
-		utils.printDebugInfo();
+		//utils.printDebugInfo();
 	}
 
 	// define and check
@@ -184,7 +187,7 @@ public class Visitor2 extends DepthFirstAdapter {
 		}
 
 		symtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work			
-		utils.printDebugInfo();
+		//utils.printDebugInfo();
 	}
 
 	// define and check
@@ -206,7 +209,7 @@ public class Visitor2 extends DepthFirstAdapter {
 		}
 
 		symtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work			
-		utils.printDebugInfo();
+		//utils.printDebugInfo();
 	}
 
 	// define and check
@@ -228,7 +231,7 @@ public class Visitor2 extends DepthFirstAdapter {
 		}
 
 		symtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work			
-		utils.printDebugInfo();
+		//utils.printDebugInfo();
 	}
 
 	// define and check
@@ -250,7 +253,7 @@ public class Visitor2 extends DepthFirstAdapter {
 		}
 
 		symtable.put(id, (Type) utils.getType(leftExp)); // either left or right could work			
-		utils.printDebugInfo();
+		//utils.printDebugInfo();
 	}
 
 	/*

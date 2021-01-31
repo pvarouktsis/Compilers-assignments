@@ -2,10 +2,7 @@
 TEST_PATH="tests/"
 TEST_FILENAME="test"
 COMPILER_PATH="code/"
-COMPILER_FILENAME="Compiler"
-
-# compile all java files in current directory
-# javac code/*.java
+COMPILER_FILENAME="ParserTest"
 
 for i in {1..7}
 do
