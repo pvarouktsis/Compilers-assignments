@@ -9,6 +9,10 @@ This is a repository for the purpose of Compilers Assignments. We implemented a 
 - tests: Tests
 
 ## Run
+First, you need to generate the SableCC Parser
+```
+java -jar lib/sablecc.jar minipython.grammar
+```
 
 In order to run the tests, you need to compile the source code
 ```
