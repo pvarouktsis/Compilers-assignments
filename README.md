@@ -1,6 +1,6 @@
 # Compilers-assignments
 
-This is a repository for the purpose of Compilers Assignments. We implemented a miniPython compiler using SableCC.
+This is a repository for the purpose of Compilers Assignments. We implemented a miniPython "parser" using SableCC.
 
 ## Project Structure
 
