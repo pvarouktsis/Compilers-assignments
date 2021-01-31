@@ -1,6 +1,6 @@
 package code;
 
-enum Type {
+public enum Type {
 	NUMBER,
 	STRING,
 	NONE

@@ -1,6 +1,5 @@
 package code;
 
-import minipython.analysis.AnalysisAdapter;
 import minipython.analysis.DepthFirstAdapter;
 import minipython.node.*;
 

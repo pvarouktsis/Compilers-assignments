@@ -5,33 +5,33 @@ public class Error {
 	private int line;
 	private String message;
 
-	Error(String id, int line, String message) {
+	public Error(String id, int line, String message) {
 		this.id = id;
 		this.line = line;
 		this.message = message;
 	}
 
-	String getId() {
+	public String getId() {
 		return this.id;
 	}
 
-	void setId(String id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
-	int getLine() {
+	public int getLine() {
 		return this.line;
 	}
 
-	void setMessage(int line) {
+	public void setMessage(int line) {
 		this.line = line;
 	}
 
-	String getMessage() {
+	public String getMessage() {
 		return this.message;
 	}
 
-	void setMessage(String message) {
+	public void setMessage(String message) {
 		this.message = message;
 	}
 
