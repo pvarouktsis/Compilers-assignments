@@ -24,7 +24,7 @@ In order to run the tests individually, after the source code compilation,
 ```
 java code/ParserTest tests/test*.py
 ```
-where wildcard could be any number of test.
+where wildcard could be the number of test.
 
 ## Built with
 [SableCC](https://sablecc.org/)
